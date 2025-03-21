@@ -1,7 +1,7 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { fetchPhotos } from "../api/pexels";
-import MasonryGrid from "../components/MasonryGrid";
+import VirtualizedMasonry from "../components/VirtualizedMasonry";
 
 interface Photo {
     id: number;
@@ -13,9 +13,9 @@ interface Photo {
 }
 
 const getColumnCount = (width: number) => {
-    if (width > 1200) return 5;
-    if (width > 900) return 4;
-    if (width > 600) return 3;
+    if (width > 1400) return 5;
+    if (width > 1024) return 4;
+    if (width > 768) return 3;
     return 2;
 };
 
@@ -26,6 +26,8 @@ const Home = () => {
     });
     const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
     const [columnCount, setColumnCount] = useState(getColumnCount(window.innerWidth));
+    const [page, setPage] = useState(1);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -35,14 +37,40 @@ const Home = () => {
     }, [searchQuery]);
 
     useEffect(() => {
-        fetchPhotos(debouncedQuery, 30, 1).then((data) => setPhotos(data));
+        setPhotos([]);
+        setPage(1);
     }, [debouncedQuery]);
+
+    useEffect(() => {
+        const loadPhotos = async () => {
+            if (isLoading) return;
+            setIsLoading(true);
+            const newPhotos = await fetchPhotos(debouncedQuery, 80, page);
+            setPhotos((prevPhotos) => [...prevPhotos, ...newPhotos]);
+            setIsLoading(false);
+        };
+
+        loadPhotos();
+    }, [debouncedQuery, page]);
 
     useEffect(() => {
         const handleResize = () => setColumnCount(getColumnCount(window.innerWidth));
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
     }, []);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (
+                window.innerHeight + window.scrollY >= document.body.offsetHeight - 500 &&
+                !isLoading
+            ) {
+                setPage((prevPage) => prevPage + 1);
+            }
+        };
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, [isLoading]);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -58,7 +86,8 @@ const Home = () => {
                 value={searchQuery}
                 onChange={handleSearchChange}
             />
-            <MasonryGrid photos={photos} columnCount={columnCount} />
+            <VirtualizedMasonry photos={photos} columnCount={columnCount} />
+            {isLoading && <LoadingText>Loading more photos...</LoadingText>}
         </Container>
     );
 };
@@ -67,6 +96,7 @@ export default Home;
 
 const Container = styled.div`
   padding: 20px;
+  padding-bottom: 200px;
 `;
 
 const SearchInput = styled.input`
@@ -80,4 +110,16 @@ const SearchInput = styled.input`
   display: block;
   margin-left: auto;
   margin-right: auto;
+
+  @media (max-width: 768px) {
+    max-width: 90%;
+    font-size: 14px;
+  }
+`;
+
+const LoadingText = styled.p`
+  text-align: center;
+  font-size: 16px;
+  color: #666;
+  margin-top: 20px;
 `;

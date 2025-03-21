@@ -1,42 +1,58 @@
-import { memo } from "react";
-import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { Link } from "react-router-dom";
 
-interface PhotoProps {
-    photo: {
-        id: number;
-        src: { medium: string; large: string };
-        photographer: string;
-    };
+interface Photo {
+    id: number;
+    src: { medium: string; large: string };
+    photographer: string;
+    height: number;
+    width: number;
+    alt: string;
 }
 
-const PhotoCard = memo(({ photo }: PhotoProps) => {
+interface Props {
+    photo: Photo;
+}
+
+const PhotoCard = ({ photo }: Props) => {
     return (
-        <Card>
-            <Link to={`/photo/${photo.id}`}>
-                <Image src={photo.src.medium} alt="Photo" loading="lazy" />
-            </Link>
+        <Card to={`/photo/${photo.id}`}>
+            <ImageWrapper>
+                <Image
+                    src={photo.src.medium}
+                    alt={photo.alt}
+                    loading="lazy"
+                />
+            </ImageWrapper>
             <Photographer>{photo.photographer}</Photographer>
         </Card>
     );
-});
+};
 
 export default PhotoCard;
 
-const Card = styled.div`
-  border-radius: 8px;
+const Card = styled(Link)`
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background: #fff;
+`;
+
+const ImageWrapper = styled.div`
+  position: relative;
+  width: 100%;
 `;
 
 const Image = styled.img`
   width: 100%;
   display: block;
+  border-radius: 10px;
 `;
 
-const Photographer = styled.p`
-  padding: 8px;
-  font-size: 14px;
-  color: #555;
+const Photographer = styled.div`
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  margin-top: 4px;
 `;

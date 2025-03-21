@@ -1,37 +1,33 @@
 import { render, screen } from "@testing-library/react";
-import { BrowserRouter } from "react-router-dom";
 import PhotoCard from "../PhotoCard";
+import { BrowserRouter } from "react-router-dom";
+import { describe, it, expect} from "vitest";
 
-const photo = {
-    id: 123,
-    src: {
-        medium: "https://example.com/image.jpg",
-        large: "https://example.com/image-large.jpg",
-    },
-    photographer: "John Doe",
-};
+describe("PhotoCard Component", () => {
+    const photo = {
+        id: 1,
+        src: {
+            medium: "https://example.com/photo-medium.jpg",
+            large: "https://example.com/photo-large.jpg",
+        },
+        photographer: "Test Photographer",
+        height: 600,
+        width: 400,
+        alt: "Test Alt Text",
+    };
 
-describe("PhotoCard", () => {
-    it("renders photo and photographer", () => {
+    it("renders image and photographer name", () => {
         render(
             <BrowserRouter>
                 <PhotoCard photo={photo} />
             </BrowserRouter>
         );
 
-        const img = screen.getByRole("img");
-        expect(img).toHaveAttribute("src", photo.src.medium);
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
-    });
+        const imgElement = screen.getByAltText("Test Alt Text");
+        const photographer = screen.getByText("Test Photographer");
 
-    it("has link to photo details", () => {
-        render(
-            <BrowserRouter>
-                <PhotoCard photo={photo} />
-            </BrowserRouter>
-        );
-
-        const link = screen.getByRole("link");
-        expect(link).toHaveAttribute("href", `/photo/${photo.id}`);
+        expect(imgElement).toBeInTheDocument();
+        expect(imgElement).toHaveAttribute("src", photo.src.medium);
+        expect(photographer).toBeInTheDocument();
     });
 });

@@ -1,9 +1,9 @@
 import { fetchPhotos } from "../pexels";
 import axios from "axios";
-import { vi } from "vitest";
+import { describe, it, expect, vi, Mocked } from "vitest";
 
 vi.mock("axios");
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+const mockedAxios = axios as Mocked<typeof axios>;
 
 describe("fetchPhotos", () => {
     it("fetches and returns photos", async () => {

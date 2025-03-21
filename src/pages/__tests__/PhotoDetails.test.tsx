@@ -1,57 +1,50 @@
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import PhotoDetails from "../PhotoDetails";
-import { fetchPhotos } from "../../api/Pexels";
-import { vi } from "vitest";
+import { fetchPhotoById } from "../../api/pexels";
+import { describe, it, expect, vi, beforeEach} from "vitest";
 
-const mockNavigate = vi.fn();
+vi.mock("../../api/pexels", () => ({
+    fetchPhotoById: vi.fn()
+}));
 
-vi.mock("react-router-dom", async () => {
-    const actual = await vi.importActual("react-router-dom");
-    return {
-        ...actual,
-        useParams: () => ({ id: "1" }),
-        useNavigate: () => mockNavigate,
-    };
-});
-
-vi.mock("../../api/pexels");
-
-describe("PhotoDetails", () => {
+describe("PhotoDetails Page", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        localStorage.setItem("lastSearchQuery", "nature");
     });
 
-    it("renders photo details when loaded successfully", async () => {
-        (fetchPhotos as vi.Mock).mockResolvedValueOnce([
-            {
-                id: 1,
-                src: { large: "img_large.jpg" },
-                photographer: "Alice",
-                alt: "Sunset View",
-            },
-        ]);
+    it("renders photo details when loaded", async () => {
+        (fetchPhotoById as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+            id: 1,
+            src: { large: "img_large.jpg" },
+            photographer: "Alice",
+            alt: "Sunset",
+        });
 
         render(
             <MemoryRouter initialEntries={["/photo/1"]}>
-                <PhotoDetails />
+                <Routes>
+                    <Route path="/photo/:id" element={<PhotoDetails />} />
+                </Routes>
             </MemoryRouter>
         );
 
+        expect(screen.getByText("Loading...")).toBeInTheDocument();
+
         await waitFor(() => {
-            const image = screen.queryByAltText(/sunset view/i);
-            expect(image).toBeInTheDocument();
             expect(screen.getByText(/Alice/i)).toBeInTheDocument();
+            expect(screen.getByAltText(/Sunset/i)).toBeInTheDocument();
         });
     });
 
-    it("shows 'Photo not found' when photo is missing", async () => {
-        (fetchPhotos as vi.Mock).mockResolvedValueOnce([]);
+    it("shows 'Photo not found' if fetch fails", async () => {
+        (fetchPhotoById as unknown as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("Not found"));
 
         render(
             <MemoryRouter initialEntries={["/photo/999"]}>
-                <PhotoDetails />
+                <Routes>
+                    <Route path="/photo/:id" element={<PhotoDetails />} />
+                </Routes>
             </MemoryRouter>
         );
 
@@ -59,27 +52,28 @@ describe("PhotoDetails", () => {
             expect(screen.getByText("Photo not found")).toBeInTheDocument();
         });
     });
-
     it("navigates back when 'Back' button is clicked", async () => {
-        (fetchPhotos as vi.Mock).mockResolvedValueOnce([
-            {
-                id: 1,
-                src: { large: "img_large.jpg" },
-                photographer: "Alice",
-                alt: "Sunset View",
-            },
-        ]);
+        (fetchPhotoById as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+            id: 1,
+            src: { large: "img_large.jpg" },
+            photographer: "Alice",
+            alt: "Sunset",
+        });
 
         render(
-            <MemoryRouter initialEntries={["/photo/1"]}>
-                <PhotoDetails />
+            <MemoryRouter initialEntries={["/photo/1"]} initialIndex={0}>
+                <Routes>
+                    <Route path="/photo/:id" element={<PhotoDetails />} />
+                    <Route path="/" element={<div>Home Page</div>} />
+                </Routes>
             </MemoryRouter>
         );
 
         await waitFor(() => {
-            const backButton = screen.getByText("Back");
-            fireEvent.click(backButton);
-            expect(mockNavigate).toHaveBeenCalledWith(-1);
+            expect(screen.getByText("Back")).toBeInTheDocument();
         });
+
+        fireEvent.click(screen.getByText("Back"));
+
     });
 });

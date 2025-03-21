@@ -19,3 +19,12 @@ export const fetchPhotos = async (query = "nature", perPage = 5, page = 1) => {
         return [];
     }
 };
+
+export const fetchPhotoById = async (id: string) => {
+    const response = await axios.get(`${BASE_URL}photos/${id}`, {
+        headers: {
+            Authorization: API_KEY,
+        },
+    });
+    return response.data;
+};

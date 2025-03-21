@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { fetchPhotos } from "../api/pexels";
+import { fetchPhotoById } from "../api/pexels";
 
 interface Photo {
     id: number;
@@ -20,18 +20,13 @@ const PhotoDetails = () => {
     useEffect(() => {
         const loadPhoto = async () => {
             setLoading(true);
-            setImageLoaded(false);
-
             try {
-                const lastQuery = localStorage.getItem("lastSearchQuery") || "nature";
-                const allPhotos = await fetchPhotos(lastQuery, 30, 1);
-                const selectedPhoto = allPhotos.find((p) => p.id.toString() === id) || null;
-                setPhoto(selectedPhoto);
-            } catch (error) {
-                console.error("Failed to load photo", error);
+                const result = await fetchPhotoById(id!);
+                setPhoto(result);
+            } catch (err) {
+                console.error("Failed to fetch photo by ID", err);
                 setPhoto(null);
             }
-
             setLoading(false);
         };
 

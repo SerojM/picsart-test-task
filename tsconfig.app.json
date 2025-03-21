@@ -6,9 +6,10 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
+    "types": ["vitest/globals"],
 
     /* Bundler mode */
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
@@ -24,8 +25,7 @@
   },
   "include": [
     "src",
-    "node_modules/vitest/globals.d.ts",
-    "node_modules/vitest/globals.d.ts",
-    "node_modules/vitest/globals.d.ts"
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx"
   ]
 }
